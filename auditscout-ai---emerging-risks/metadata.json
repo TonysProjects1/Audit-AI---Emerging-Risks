@@ -1,0 +1,5 @@
+{
+  "name": "AuditScout AI - Emerging Risks",
+  "description": "An automated emerging risk register for audit teams. Scans daily, weekly, monthly, quarterly, and yearly horizons using Google Search Grounding to identify and summarize risks, with GitHub integration for publishing.",
+  "requestFramePermissions": []
+}
