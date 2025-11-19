@@ -1,0 +1,38 @@
+name: Daily Risk Scan
+
+on:
+  schedule:
+    # Runs at 12:00 UTC (6:00 AM CST) every Monday through Friday
+    - cron: '0 12 * * 1-5'
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+  audit-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to commit the report back to the repo
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run AuditScout AI Scan
+        env:
+          API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/headless-scan.mjs
+
+      - name: Commit and Push Report
+        run: |
+          git config --global user.name 'AuditScout Bot'
+          git config --global user.email 'bot@auditscout.ai'
+          git add reports/
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated Daily Risk Report $(date +'%Y-%m-%d')" && git push)
