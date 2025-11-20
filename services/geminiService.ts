@@ -31,31 +31,34 @@ const buildPrompt = (timeFrame: TimeFrame): string => {
   const isShortTerm = timeFrame === TimeFrame.DAY || timeFrame === TimeFrame.WEEK;
 
   const baseContext = `
-    You are a Chief Audit Executive's AI assistant.
-    Target Audience: Internal Audit Planning Committee.
+    You are a Chief Audit Executive's AI assistant for a **Large Mutual Life Insurance and Wealth Management Company**.
+    Target Audience: Internal Audit Planning Committee & Risk Committee.
     Date Range: ${dateRange} (${timeFrame}).
+
+    Context: The company offers Life Insurance, Annuities, Disability Income, and Wealth Management/Investment products.
+    Key Concerns: Solvency, Policyholder Protection, Regulatory Compliance (NAIC/SEC/DOL), Interest Rate Risk, and Digital Transformation.
   `;
 
   const specificInstructions = isShortTerm 
     ? `
-      TASK: Search for specific, recent EVENTS that occurred strictly within this date range.
+      TASK: Search for specific, recent EVENTS that occurred strictly within this date range affecting the Insurance & Financial Services sector.
       
       LOOK FOR:
-      - New regulatory enforcement actions or fines announced.
-      - Specific cyber breaches or vulnerabilities (CVEs) released.
-      - Sudden geopolitical shifts or trade announcements.
-      - Corporate scandals or immediate operational disruptions.
+      - New regulatory enforcement actions (SEC, FINRA, State Insurance Depts) or fines against insurers.
+      - Specific cyber breaches in financial services or third-party TPAs.
+      - Sudden market shocks affecting asset management or yield curves.
+      - Immediate operational disruptions or competitor scandals (e.g., sales practice violations).
 
       STYLE: News-brief style. Factual and immediate.
     `
     : `
-      TASK: Analyze broad TRENDS and systemic shifts over this period.
+      TASK: Analyze broad TRENDS and systemic shifts over this period relevant to Life Insurance & Wealth.
       
       LOOK FOR:
-      - Evolving regulatory themes (e.g., "increasing scrutiny on AI").
-      - Statistical rises in specific types of cyber attacks (e.g., "ransomware trends").
-      - Macroeconomic shifts affecting business continuity.
-      - Long-term supply chain restructuring.
+      - Evolving regulatory themes (e.g., DOL Fiduciary Rule, NAIC AI Model Bulletin, Privacy laws).
+      - Emerging Actuarial/Underwriting risks (e.g., mortality trends, climate impact on health, genetic testing laws).
+      - Macroeconomic shifts affecting investment income, annuities, and capital requirements.
+      - Technology risks: AI bias in underwriting, legacy system modernization challenges.
 
       STYLE: Strategic analysis. Thematic and forward-looking.
     `;
@@ -71,11 +74,11 @@ const buildPrompt = (timeFrame: TimeFrame): string => {
     **Context**: [2-3 sentences explaining what happened or the trend]
     
     **Implications for Audit**:
-    *   [Specific audit action or area to test]
-    *   [Risk impact consideration]
+    *   [Specific audit action: e.g., "Review model governance," "Test TPA controls," "Assess liquidity stress testing"]
+    *   [Impact consideration: e.g., "Reputational risk," "Regulatory fine exposure"]
 
     Constraints:
-    - Do NOT be generic. Avoid "Cybersecurity risks are rising." Say "New SEC rules on disclosure..." or "Rise in deepfake fraud..."
+    - Do NOT be generic. Avoid "Cyber risks are rising." Say "New NYDFS cybersecurity amendment..." or "Rise in annuity fraud..."
     - Cite real entities, laws, or events found in search.
     - If no significant specific events occurred (for Day/Week), state "No major high-impact risk events detected" but provide 1 minor observation.
   `;
