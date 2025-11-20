@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 // Configuration
 const API_KEY = process.env.API_KEY;
 const MODEL_NAME = "gemini-2.5-flash";
+// Reverted to simple 'reports' directory at project root
 const REPORT_DIR = path.join(__dirname, '../reports');
 
 // Timeframes to scan
@@ -43,12 +44,53 @@ const getDateRange = (timeFrame) => {
 };
 
 const buildPrompt = (timeFrame) => {
+  const dateRange = getDateRange(timeFrame);
+  const isShortTerm = timeFrame === 'Past Day' || timeFrame === 'Past Week';
+
+  const baseContext = `
+    You are a Chief Audit Executive's AI assistant.
+    Target Audience: Internal Audit Planning Committee.
+    Date Range: ${dateRange} (${timeFrame}).
+  `;
+
+  const specificInstructions = isShortTerm 
+    ? `
+      TASK: Search for specific, recent EVENTS that occurred strictly within this date range.
+      LOOK FOR:
+      - New regulatory enforcement actions or fines announced.
+      - Specific cyber breaches or vulnerabilities (CVEs) released.
+      - Sudden geopolitical shifts or trade announcements.
+      - Corporate scandals or immediate operational disruptions.
+      STYLE: News-brief style. Factual and immediate.
+    `
+    : `
+      TASK: Analyze broad TRENDS and systemic shifts over this period.
+      LOOK FOR:
+      - Evolving regulatory themes (e.g., "increasing scrutiny on AI").
+      - Statistical rises in specific types of cyber attacks.
+      - Macroeconomic shifts affecting business continuity.
+      - Long-term supply chain restructuring.
+      STYLE: Strategic analysis. Thematic and forward-looking.
+    `;
+
   return `
-    You are a senior risk analyst for a corporate audit team.
-    Task: Identify and summarize the top 3-5 emerging risks relevant to internal audit planning during the period: ${getDateRange(timeFrame)} (${timeFrame}).
-    Focus Areas: Regulatory changes, Cybersecurity (AI, Data Privacy), Economic Stability, Supply Chain.
-    Output Format: concise executive summary title, followed by a short paragraph explaining the risk.
-    Do NOT invent risks. Only report on information found via the search tool.
+    ${baseContext}
+    ${specificInstructions}
+
+    REQUIRED OUTPUT FORMAT (Markdown):
+    For each risk found (limit to top 3-5), use this exact structure:
+
+    ### [Risk Title]
+    **Context**: [2-3 sentences explaining what happened or the trend]
+    
+    **Implications for Audit**:
+    *   [Specific audit action or area to test]
+    *   [Risk impact consideration]
+
+    Constraints:
+    - Do NOT be generic. 
+    - Cite real entities, laws, or events found in search.
+    - If no significant specific events occurred (for Day/Week), state "No major high-impact risk events detected" but provide 1 minor observation.
   `;
 };
 
@@ -75,7 +117,7 @@ async function generateReport() {
         contents: buildPrompt(timeFrame),
         config: {
           tools: [{ googleSearch: {} }],
-          temperature: 0.3,
+          temperature: 0.2,
         },
       });
 
@@ -97,7 +139,7 @@ async function generateReport() {
       fullReport += `\n---\n\n`;
       
       // Rate limiting pause
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 4000));
 
     } catch (error) {
       console.error(`Error scanning ${timeFrame}:`, error.message);
