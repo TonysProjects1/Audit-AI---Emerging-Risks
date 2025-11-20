@@ -28,23 +28,56 @@ const getDateRange = (timeFrame: TimeFrame): string => {
 
 const buildPrompt = (timeFrame: TimeFrame): string => {
   const dateRange = getDateRange(timeFrame);
-  
+  const isShortTerm = timeFrame === TimeFrame.DAY || timeFrame === TimeFrame.WEEK;
+
+  const baseContext = `
+    You are a Chief Audit Executive's AI assistant.
+    Target Audience: Internal Audit Planning Committee.
+    Date Range: ${dateRange} (${timeFrame}).
+  `;
+
+  const specificInstructions = isShortTerm 
+    ? `
+      TASK: Search for specific, recent EVENTS that occurred strictly within this date range.
+      
+      LOOK FOR:
+      - New regulatory enforcement actions or fines announced.
+      - Specific cyber breaches or vulnerabilities (CVEs) released.
+      - Sudden geopolitical shifts or trade announcements.
+      - Corporate scandals or immediate operational disruptions.
+
+      STYLE: News-brief style. Factual and immediate.
+    `
+    : `
+      TASK: Analyze broad TRENDS and systemic shifts over this period.
+      
+      LOOK FOR:
+      - Evolving regulatory themes (e.g., "increasing scrutiny on AI").
+      - Statistical rises in specific types of cyber attacks (e.g., "ransomware trends").
+      - Macroeconomic shifts affecting business continuity.
+      - Long-term supply chain restructuring.
+
+      STYLE: Strategic analysis. Thematic and forward-looking.
+    `;
+
   return `
-    You are a senior risk analyst for a corporate audit team.
+    ${baseContext}
+    ${specificInstructions}
+
+    REQUIRED OUTPUT FORMAT (Markdown):
+    For each risk found (limit to top 3-5), use this exact structure:
+
+    ### [Risk Title]
+    **Context**: [2-3 sentences explaining what happened or the trend]
     
-    Task: Identify and summarize the top 3-5 emerging risks relevant to internal audit planning during the period: ${dateRange} (${timeFrame}).
-    
-    Focus Areas:
-    - Regulatory changes (Global and Major Markets)
-    - Cybersecurity and Technology (AI, Data Privacy)
-    - Economic and Financial Stability
-    - Operational and Supply Chain Disruptions
-    
-    Output Format:
-    - Provide a concise executive summary title for each risk.
-    - Follow with a short paragraph explaining the risk and its potential impact on an organization.
-    - Keep the tone professional, objective, and action-oriented.
-    - Do NOT invent risks. Only report on information found via the search tool.
+    **Implications for Audit**:
+    *   [Specific audit action or area to test]
+    *   [Risk impact consideration]
+
+    Constraints:
+    - Do NOT be generic. Avoid "Cybersecurity risks are rising." Say "New SEC rules on disclosure..." or "Rise in deepfake fraud..."
+    - Cite real entities, laws, or events found in search.
+    - If no significant specific events occurred (for Day/Week), state "No major high-impact risk events detected" but provide 1 minor observation.
   `;
 };
 
@@ -60,17 +93,17 @@ export const generateRiskForTimeframe = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-2.5-flash",
       contents: buildPrompt(timeFrame),
       config: {
         tools: [{ googleSearch: {} }],
-        temperature: 0.3, // Lower temperature for more factual reporting
+        temperature: 0.2, // Low temp for high factual accuracy
       },
     });
 
     const content = response.text || "No content generated.";
     
-    // Map SDK GroundingChunk to application GroundingChunk type to fix compatibility
+    // Map SDK GroundingChunk to application GroundingChunk type
     const rawSources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     const sources = rawSources.map(chunk => ({
       web: (chunk.web && chunk.web.uri) ? {
