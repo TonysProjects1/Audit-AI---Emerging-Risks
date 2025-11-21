@@ -58,34 +58,42 @@ const buildPrompt = (timeFrame) => {
   const isShortTerm = timeFrame === 'Past Day' || timeFrame === 'Past Week';
 
   const baseContext = `
-    You are a Chief Audit Executive's AI assistant for a **Large Mutual Life Insurance and Wealth Management Company**.
+    You are a Chief Audit Executive's AI assistant for **Northwestern Mutual**.
     Target Audience: Internal Audit Planning Committee & Risk Committee.
     Date Range: ${dateRange} (${timeFrame}).
 
-    Context: The company offers Life Insurance, Annuities, Disability Income, and Wealth Management/Investment products.
-    Key Concerns: Solvency, Policyholder Protection, Regulatory Compliance (NAIC/SEC/DOL), Interest Rate Risk, and Digital Transformation.
+    Company Context:
+    - Structure: Major US Mutual Life Insurer & Wealth Management firm.
+    - Distribution: Exclusive "Career Agency" system (Financial Representatives).
+    - Products: Whole Life, Term, Disability Income (DI), Long-Term Care (LTC), Annuities, Advisory Services (NMIS).
+    - Key Competitors: MassMutual, New York Life, Guardian, Prudential.
+
+    Strategic Focus Areas:
+    - Client Experience & Digital Transformation.
+    - Integrated Financial Planning (Insurance + Investments).
+    - Solvency & General Account Investment Performance.
   `;
 
   const specificInstructions = isShortTerm 
     ? `
-      TASK: Search for specific, recent EVENTS that occurred strictly within this date range affecting the Insurance & Financial Services sector.
+      TASK: Search for specific, recent EVENTS that occurred strictly within this date range affecting Northwestern Mutual, its mutual peers, or the Financial Services sector.
       
       LOOK FOR:
-      - New regulatory enforcement actions (SEC, FINRA, State Insurance Depts) or fines.
-      - Specific cyber breaches in financial services or third-party TPAs.
-      - Sudden market shocks affecting asset management or yield curves.
-      - Immediate operational disruptions or competitor scandals (e.g., sales practice violations).
+      - Regulatory enforcement actions (SEC, FINRA, NYDFS) related to "off-channel communications", "best interest" (Reg BI), or sales practices.
+      - Cybersecurity incidents involving insurers, third-party administrators (TPAs), or wealth platforms.
+      - Specific negative news or lawsuits involving Northwestern Mutual or similar carrier/agency models.
+      - Sudden market shifts affecting bond yields or commercial real estate (relevant to General Account).
 
       STYLE: News-brief style. Factual and immediate.
     `
     : `
-      TASK: Analyze broad TRENDS and systemic shifts over this period relevant to Life Insurance & Wealth.
+      TASK: Analyze broad TRENDS and systemic shifts over this period relevant to Northwestern Mutual.
       
       LOOK FOR:
-      - Evolving regulatory themes (e.g., DOL Fiduciary Rule, NAIC AI Model Bulletin, Privacy laws).
-      - Emerging Actuarial/Underwriting risks (e.g., mortality trends, climate impact on health, genetic testing laws).
-      - Macroeconomic shifts affecting investment income, annuities, and capital requirements.
-      - Technology risks: AI bias in underwriting, legacy system modernization challenges.
+      - Regulatory Horizon: Department of Labor (DOL) Fiduciary Rule developments, NAIC AI/Model Governance bulletins, Tax law changes affecting estate planning.
+      - Industry Trends: Shifts in "Career Agency" distribution models, direct-to-consumer competition, underwriting innovations (electronic health records).
+      - Macro Risks: Commercial Mortgage Loan (CML) portfolio stress, credit cycle downturns, inflation impact on claims/expenses.
+      - Emerging Tech: AI risks in financial advice, deepfakes impacting fraud verification.
 
       STYLE: Strategic analysis. Thematic and forward-looking.
     `;
@@ -98,11 +106,13 @@ const buildPrompt = (timeFrame) => {
     For each risk found (limit to top 3-5), use this exact structure:
 
     ### [Risk Title]
-    **Context**: [2-3 sentences explaining what happened or the trend]
+    **Context**: [2-3 sentences explaining the event or trend]
     
+    **Relevance to Northwestern Mutual**:
+    *   [Why this matters: e.g., "Impacts field force compliance," "Affects whole life dividend performance," "NMIS regulatory exposure"]
+
     **Implications for Audit**:
-    *   [Specific audit action: e.g., "Review model governance," "Test TPA controls," "Assess liquidity stress testing"]
-    *   [Risk impact consideration]
+    *   [Specific audit action: e.g., "Review NMIS supervisory controls," "Audit model governance for underwriting," "Assess TPA vendor management"]
 
     Constraints:
     - Do NOT be generic. 
